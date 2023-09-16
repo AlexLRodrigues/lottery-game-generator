@@ -7,5 +7,6 @@ data class SetOfAnalisys(
         var fibonacci: MaxMinAvg,
         var groups: ArrayList<MaxMinAvg>,
         var sum: MaxMinAvg,
-        var intervals: ArrayList<Interval>
+        var intervals: ArrayList<Interval>,
+        var sameNumberPreviousGameAvg: MaxMinAvg
 )

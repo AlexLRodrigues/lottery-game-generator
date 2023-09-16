@@ -28,37 +28,53 @@ class LotoFacilGeneratorImpl : Generator {
     }
 
     override fun generate(numberOfGames: Int, amountOfNumbers: Int) {
-        val results = readLotoFacilResultsHtml(FILE_PATH)
+//        val results = readLotoFacilResultsHtml(FILE_PATH)
+        val results = readLotoFacilResultsXlsx()
         numberOfResults = results?.size ?: 0
-//        val hasAnyGameAlreadyReplayed = hasAnyGameAlreadyReplayed(results)
-        val hasAnyGameAlreadyReplayed = false
+        val hasAnyGameAlreadyReplayed = hasAnyGameAlreadyReplayed(results)
         val extractedAnalisys = doAnalisys(results)
 
         println(extractedAnalisys)
 
         val luckyResults = arrayListOf<ArrayList<Int>>()
+        val lastGame = results?.get(results.size-1)?.resultNumbers
 
         do {
             val result = randomResult(26, amountOfNumbers)
-            if (hasGoodNumberOffOdds(result, extractedAnalisys.even))
-                if (hasGoodNumberOffPrime(result, extractedAnalisys.prime))
-                    if (hasGoodNumberOffFibonacci(result, extractedAnalisys.fibonacci))
-                        if (hasGoodNumberOffSameGroup(result, extractedAnalisys.groups))
-                            if (hasGoodNumberOffSum(result, extractedAnalisys.sum))
-                                if (hasGoodNumberOffInterval(result, extractedAnalisys.intervals, results))
-                                    if (!hasAnyGameAlreadyReplayed) {
-                                        if (!checkIfGameAlreadReplayed(ArrayList(result.subList(0,15)), results))
+            if(hasGoodPreviousNumbers(result, lastGame, extractedAnalisys.sameNumberPreviousGameAvg))
+                if (hasGoodNumberOffOdds(result, extractedAnalisys.even))
+                    if (hasGoodNumberOffPrime(result, extractedAnalisys.prime))
+                        if (hasGoodNumberOffFibonacci(result, extractedAnalisys.fibonacci))
+                            if (hasGoodNumberOffSameGroup(result, extractedAnalisys.groups))
+                                if (hasGoodNumberOffSum(result, extractedAnalisys.sum))
+                                    if (hasGoodNumberOffInterval(result, extractedAnalisys.intervals, results))
+                                        if (!hasAnyGameAlreadyReplayed) {
+                                            if (!checkIfGameAlreadReplayed(ArrayList(result.subList(0,15)), results))
+                                                if (!luckyResults.contains(result))
+                                                    luckyResults.add(result)
+                                        } else {
                                             if (!luckyResults.contains(result))
                                                 luckyResults.add(result)
-                                    } else {
-                                        if (!luckyResults.contains(result))
-                                            luckyResults.add(result)
-                                    }
+                                        }
 
 
         } while (luckyResults.size != numberOfGames)
 
         println(luckyResults)
+    }
+
+    private fun hasGoodPreviousNumbers(result: ArrayList<Int>, lastGame: ArrayList<Int>?, sameNumberPreviousGameAvg: MaxMinAvg): Boolean {
+        var totalNumbers = 0
+        result.forEach {
+            if (lastGame?.contains(it) == true)
+                totalNumbers++
+        }
+
+        if (totalNumbers > sameNumberPreviousGameAvg.avg + 2
+            || totalNumbers < sameNumberPreviousGameAvg.avg -2)
+            return false
+
+        return true
     }
 
     private fun hasGoodNumberOffInterval(result: ArrayList<Int>, intervalsAvg: ArrayList<Interval>, results: MutableList<Result>?): Boolean {
@@ -123,8 +139,9 @@ class LotoFacilGeneratorImpl : Generator {
         val fourthGroupMaxMinAvg = MaxMinAvg(0, 15, 0, 0)
         val fifthGroupMaxMinAvg = MaxMinAvg(0, 15, 0, 0)
         val sumMaxMinAvg = MaxMinAvg(0, 270, 0, 0)
+        val sameNumberPreviousGameAvg = MaxMinAvg(0, 16, 0, 0)
 
-        results?.forEach {
+        results?.forEachIndexed { index, it ->
             doEvenAnalisys(evenMaxMinAvg, it)
             doOddAnalisys(oddMaxMinAvg, it)
             doPrimeAnalisys(primeMaxMinAvg, it)
@@ -136,6 +153,8 @@ class LotoFacilGeneratorImpl : Generator {
             doGroupAnalisys(fifthGroupMaxMinAvg, it, groups[4])
             doSumAnalisys(sumMaxMinAvg, it)
             doIntervalAnalisys(intervals, it)
+            if (index < results.size-1)
+                doSameNumberPreviousGameAnalisys(sameNumberPreviousGameAvg, results[index], results[index+1])
         }
 
         setAvgValues(evenMaxMinAvg,
@@ -147,7 +166,8 @@ class LotoFacilGeneratorImpl : Generator {
             thirdGroupMaxMinAvg,
             fourthGroupMaxMinAvg,
             fifthGroupMaxMinAvg,
-            sumMaxMinAvg
+            sumMaxMinAvg,
+            sameNumberPreviousGameAvg
         )
 
         setAvgInterval()
@@ -165,7 +185,8 @@ class LotoFacilGeneratorImpl : Generator {
                 fifthGroupMaxMinAvg
             ),
             sumMaxMinAvg,
-            intervals
+            intervals,
+            sameNumberPreviousGameAvg
         )
     }
 

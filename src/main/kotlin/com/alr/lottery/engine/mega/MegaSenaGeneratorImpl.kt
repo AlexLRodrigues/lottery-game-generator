@@ -125,8 +125,9 @@ class MegaSenaGeneratorImpl : Generator {
         val fifthGroupMaxMinAvg = MaxMinAvg(0, 6, 0, 0)
         val sixthGroupMaxMinAvg = MaxMinAvg(0, 6, 0, 0)
         val sumMaxMinAvg = MaxMinAvg(0, 400, 0, 0)
+        val sameNumberPreviousGameAvg = MaxMinAvg(0, 16, 0, 0)
 
-        results?.forEach {
+        results?.forEachIndexed { index, it ->
             doEvenAnalisys(evenMaxMinAvg, it)
             doOddAnalisys(oddMaxMinAvg, it)
             doPrimeAnalisys(primeMaxMinAvg, it)
@@ -139,6 +140,8 @@ class MegaSenaGeneratorImpl : Generator {
             doGroupAnalisys(sixthGroupMaxMinAvg, it, groups[5])
             doSumAnalisys(sumMaxMinAvg, it)
             doIntervalAnalisys(intervals, it)
+            if (index < results.size-1)
+                doSameNumberPreviousGameAnalisys(sameNumberPreviousGameAvg, results[index], results[index+1])
         }
 
         setAvgValues(evenMaxMinAvg,
@@ -151,7 +154,8 @@ class MegaSenaGeneratorImpl : Generator {
             fourthGroupMaxMinAvg,
             fifthGroupMaxMinAvg,
             sixthGroupMaxMinAvg,
-            sumMaxMinAvg
+            sumMaxMinAvg,
+            sameNumberPreviousGameAvg
         )
 
         setAvgInterval()
@@ -170,7 +174,8 @@ class MegaSenaGeneratorImpl : Generator {
                 sixthGroupMaxMinAvg
             ),
             sumMaxMinAvg,
-            intervals
+            intervals,
+            sameNumberPreviousGameAvg
         )
     }
 

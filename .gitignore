@@ -26,6 +26,5 @@ replay_pid*
 # User-specific stuff
 .DS_Store
 .idea
-
 **/build
-**/.gradle
+.gradle
